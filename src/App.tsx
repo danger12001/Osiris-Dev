@@ -4,7 +4,7 @@ function App() {
 
   return (
     <>
-      App interface 1
+      App interface 2
       
     </>
   )
