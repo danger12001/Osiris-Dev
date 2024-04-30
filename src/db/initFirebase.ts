@@ -44,6 +44,16 @@ const initFirebase = async () => {
       }).catch(() =>{
         console.log("Failed to authenticate test user");
       })
+    } else {
+      signInWithCredential(
+        auth,
+        EmailAuthProvider.credential('robertsonpsd@gmail.com', '1234567890')
+        ).then(() => {
+        console.log("Logged in with test user");
+
+      }).catch(() =>{
+        console.log("Failed to authenticate test user");
+      })
     }
   } catch (err) {
     console.error("error: " + err)
