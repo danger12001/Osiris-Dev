@@ -90,6 +90,12 @@ const Home = () => {
             ...newProfile,
             id: Guid.create().toString()
         }
+
+        if(profile.IdNumber === "" || profile.IdNumber.includes("?")) {
+            profile.RiskLevel = 5;
+            profile.IdNumber = "?";
+        }
+
         db.addItem("Profiles", profile).then(() => {
             resetNewProfile();
             setShowAddForm(false);
@@ -98,6 +104,12 @@ const Home = () => {
     };
 
     const editProfile = () => {
+        if(existingProfile.IdNumber === "" || existingProfile.IdNumber.includes("?")) {
+            existingProfile.RiskLevel = 5;
+            existingProfile.IdNumber = "?";
+        }
+
+        
         db.updateItem("Profiles", existingProfile.id, existingProfile).then(() => {
             toggleEdit();
             window.location.reload();
@@ -230,7 +242,7 @@ const Home = () => {
                         <Col sm={12} md={6}>
                             <strong>Risk Level: </strong><br />
                             <Progress
-                                color={riskPercentage < 20 ? "success" : riskPercentage <= 50 ? "warning" : "danger"}
+                                color={riskPercentage < 50 ? "success" : riskPercentage <= 75 ? "warning" : "danger"}
                                 value={riskPercentage}
                             />
                         </Col>
