@@ -14,17 +14,24 @@ const App = () => {
   const signIn = () => {
     // Subscribe to firebase auth
     initFirebase(username, password).then((db) => {
-      onAuthStateChanged(getAuth(), resultUser => {
-        if (resultUser == null) {
-          console.log("FAILED TO AUTHENTICATE USER FOR DB", db)
-          setReady(true);
-          setHasSignedIn(true);
-        } else {
-          console.log("AUTH USER: ", resultUser);
-          setReady(true);
-          setHasSignedIn(true);
-        }
-      });
+      if(db !== "failed") {
+        onAuthStateChanged(getAuth(), resultUser => {
+          if (resultUser == null) {
+            console.log("FAILED TO AUTHENTICATE USER FOR DB", db)
+            setReady(false);
+            setHasSignedIn(false);
+          } else {
+            console.log("AUTH USER: ", resultUser);
+            setReady(true);
+            setHasSignedIn(true);
+          }
+        });
+      } else {
+        setReady(false);
+        setHasSignedIn(false);
+        setSignInErr("Incorrect Username or Password");
+
+      }
     }).catch((err) => {
       setSignInErr("Incorrect Username or Password");
     })

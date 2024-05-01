@@ -4,8 +4,10 @@ import db from "../db/db";
 import Database from "../types/Database";
 import { Guid } from "guid-typescript";
 import { FaPlus, FaRegEdit, FaTrashAlt } from "react-icons/fa";
-import {signOut, getAuth} from 'firebase/auth'
+import { signOut, getAuth } from 'firebase/auth'
 import { PiSignOutFill } from "react-icons/pi";
+import { MdOutlineReportProblem } from "react-icons/md";
+
 interface Profile {
     FirstName: string,
     LastName: string,
@@ -25,15 +27,19 @@ const Home = () => {
     const [search, setSearch] = useState("");
     const [riskSearch, setRiskSearch] = useState(5);
 
+    const [showIncidentForm, setShowIncidentForm] = useState(false);
+    const [incidentDate, setIncidentDate] = useState(new Date());
+    const [incidentDescription, setIncidentDescription] = useState("");
+    const [incidentId, setIncidentId] = useState("");
+
+
 
 
     useEffect(() => {
         setLoading(true);
-        console.log("Interact with firebase as an example and fetch all profiles")
         db.query({
             collection: "Profiles",
         }).then((results) => {
-            console.log("results: ", results)
             setProfiles(results);
             setOriginalDataSet(results);
             setLoading(false);
@@ -121,6 +127,23 @@ const Home = () => {
         });
     };
 
+    const addIncident = () => {
+
+        const Incident: Database.Incidents = {
+            IncidentDate: new Date(incidentDate),
+            IncidentDescription: incidentDescription,
+            IdNumber: incidentId,
+            id: Guid.create().toString()
+        }
+
+        db.addItem("Incidents", Incident).then(() => {
+            setIncidentDate(new Date());
+            setIncidentDescription("");
+            setIncidentId("");
+            setShowIncidentForm(false);
+        });
+    };
+
     const deleteProfile = (profile: any) => {
         db.deleteItem("Profiles", profile.id).then(() => {
             window.location.reload();
@@ -174,6 +197,35 @@ const Home = () => {
         )
     }
 
+    const renderIncidentForm = () => {
+
+        return (
+            <Modal isOpen={showIncidentForm} toggle={() => { setShowIncidentForm(false); setIncidentDate(new Date()); setIncidentDescription(""); setIncidentId("")  }}>
+                <ModalHeader toggle={() => { setShowIncidentForm(false); setIncidentDate(new Date()); setIncidentDescription(""); setIncidentId("") }}>Add Incident</ModalHeader>
+                <ModalBody>
+                    <Row>
+                        <Col className="mb-2" sm={12}>
+                            <strong>Incident Date</strong><br />
+                            <Input type="date" value={`${new Date(incidentDate).getFullYear()}-${new Date(incidentDate).getMonth() < 10 ? "0" + new Date(incidentDate).getMonth() : new Date(incidentDate).getMonth()}-${new Date(incidentDate).getDate() < 10 ? "0" + new Date(incidentDate).getDate() : new Date(incidentDate).getDate()}`} onChange={(event) => setIncidentDate(new Date(event.currentTarget.value))} />
+                        </Col>
+                        <Col className="mb-2" sm={12}>
+                            <strong>Incident Description</strong><br />
+                            <Input type="textarea" value={incidentDescription} onChange={(event) => setIncidentDescription(event.currentTarget.value)} />
+                        </Col>
+                    </Row>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={addIncident}>
+                        Add Incident
+                    </Button>{' '}
+                    <Button color="secondary" onClick={() => { setShowIncidentForm(false); setIncidentDate(new Date()); setIncidentDescription(""); setIncidentId("") }}>
+                        Cancel
+                    </Button>
+                </ModalFooter>
+            </Modal>
+        )
+    }
+
     const handleSearch = (searchTerm: string) => {
         setSearch(searchTerm);
         if (searchTerm == "") {
@@ -192,13 +244,13 @@ const Home = () => {
     const handleRiskSearch = (searchTerm: number) => {
 
         setRiskSearch(searchTerm);
-       
-            const filtered = originalDataSet.filter((profile) => {
-                return profile.RiskLevel <= searchTerm;
-            });
 
-            setProfiles(filtered);
-        
+        const filtered = originalDataSet.filter((profile) => {
+            return profile.RiskLevel <= searchTerm;
+        });
+
+        setProfiles(filtered);
+
 
     }
 
@@ -267,6 +319,13 @@ const Home = () => {
                     </Row>
                 </CardBody>
                 <CardFooter align="right">
+                    {
+                        profile.IdNumber !== "?" ?
+                        <Button color="primary" className="p-2 m-2" onClick={() => {setShowIncidentForm(true); setIncidentId(profile.IdNumber)}}>
+                            <MdOutlineReportProblem className="m-2" />
+                        </Button> : null
+
+                    }
                     <Button color="primary" className="p-2 m-2" onClick={() => toggleEdit(profile)}>
                         <FaRegEdit className="m-2" />
                     </Button>
@@ -287,7 +346,7 @@ const Home = () => {
                     <>
                         <Row>
                             <Col className="p-2">
-                                <h1 style={{color: "white"}}>Osiris</h1>
+                                <h1 style={{ color: "white" }}>Osiris</h1>
                             </Col>
                             <Col align="right">
                                 <Button color="primary" size="sm" className="p-2 m-2" onClick={() => setShowAddForm(!showAddForm)}>
@@ -296,16 +355,16 @@ const Home = () => {
                                 <Button color="danger" size="sm" className="p-2 m-2" onClick={() => {
                                     const auth = getAuth();
                                     signOut(auth).then(() => {
-                                      // Sign-out successful.
-                                      window.location.reload();
+                                        // Sign-out successful.
+                                        window.location.reload();
                                     }).catch((error) => {
-                                      // An error happened.
+                                        // An error happened.
                                     });
                                 }}>
                                     <PiSignOutFill className="m-2" />
                                 </Button>
                             </Col>
-                            
+
                         </Row>
 
 
@@ -315,33 +374,36 @@ const Home = () => {
                         {
                             renderEditForm()
                         }
+                         {
+                            renderIncidentForm()
+                        }
                         <hr />
                         <Row>
                             <Col sm={12}>
-                                <strong style={{color: "white"}}>Search via ID Number</strong><br />
+                                <strong style={{ color: "white" }}>Search via ID Number</strong><br />
                                 <Input placeholder="Search via ID Number" onChange={(e) => { handleSearch(e.currentTarget.value) }} value={search} />
-                            </Col> 
+                            </Col>
                             <Col sm={12}>
-                                <strong style={{color: "white"}}>Search via Risk Level</strong><br />
+                                <strong style={{ color: "white" }}>Search via Risk Level</strong><br />
                                 <Input min="0" max="5" step="0.5" type="range" onChange={(e) => { handleRiskSearch(Number(e.currentTarget.value)) }} value={riskSearch} />
                             </Col>
                         </Row>
                         <br />
                         {
                             profiles ? <Row className="scroll">
-                                <h3 style={{color: "white"}}>Profiles:</h3>
+                                <h3 style={{ color: "white" }}>Profiles:</h3>
                                 <hr />
                                 {
                                     profiles.length > 0 ? profiles.map((profile, index) => {
                                         return (
-                                            <Col key={index}  sm={4}>
+                                            <Col key={index} sm={4}>
                                                 {renderProfileCard(profile)}
                                             </Col>
                                         )
-                                    }) : <h3 style={{color: "White"}}>There are no Profiles that match the filters</h3>}
+                                    }) : <h3 style={{ color: "White" }}>There are no Profiles that match the filters</h3>}
                             </Row> : null
                         }
-                    </> 
+                    </>
             }
         </Container>
     )

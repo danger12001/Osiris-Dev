@@ -11,6 +11,7 @@ import {
   EmailAuthProvider,
   signOut
 } from 'firebase/auth';
+import db from './db';
 
 // the values to initialize the firebase app can be found in your firebase project
 const firebaseConfig = {
@@ -35,29 +36,37 @@ const initFirebase = async (username: string, password: string) => {
        * yarn emulator:export, then import the data when starting the emulator
        * yarn firebase emulators:start --only firestore,auth --import=firestore_mock_data
        */
-      console.log(username, password)
+      console.log(username, password, auth, "dev");
+
       return signInWithCredential(
         auth,
         EmailAuthProvider.credential(username, password)
       ).then(() => {
         console.log("Logged in with user: " + username);
-      }).catch(() => {
-        console.log("Failed to authenticate with user: " + username);
-      })
-    } else {
-      return signInWithCredential(
-        auth,
-        EmailAuthProvider.credential(username, password)
-      ).then(() => {
-        console.log("Logged in with user: " + username);
+        return "success";
 
       }).catch(() => {
         console.log("Failed to authenticate with user: " + username);
+        return "failed";
+
       })
+    } else {
+      console.log(username, password, auth);
+
+      return signInWithCredential(
+        auth,
+        EmailAuthProvider.credential(username, password)
+      ).then(() => {
+        console.log("Logged in with user: " + username);
+        return "success";
+      }).catch(() => {
+        console.log("Failed to authenticate with user: " + username);
+        return "failed";
+      })
+
     }
   } catch (err) {
-    console.error("error: " + err)
-    return err
+    return "failed";
   }
 }
 
