@@ -23,6 +23,7 @@ const Home = () => {
     const [showEditForm, setShowEditForm] = useState(false);
     const [existingProfile, setExistingProfile] = useState<any>({ FirstName: "", LastName: "", IdNumber: "", id: "", RiskLevel: 0 });
     const [search, setSearch] = useState("");
+    const [riskSearch, setRiskSearch] = useState(5);
 
 
 
@@ -188,6 +189,19 @@ const Home = () => {
 
     }
 
+    const handleRiskSearch = (searchTerm: number) => {
+
+        setRiskSearch(searchTerm);
+       
+            const filtered = originalDataSet.filter((profile) => {
+                return profile.RiskLevel <= searchTerm;
+            });
+
+            setProfiles(filtered);
+        
+
+    }
+
     const renderAddForm = () => {
         return (
             <Modal isOpen={showAddForm} toggle={() => { setShowAddForm(!showAddForm); resetNewProfile() }}>
@@ -306,21 +320,25 @@ const Home = () => {
                             <Col sm={12}>
                                 <strong style={{color: "white"}}>Search via ID Number</strong><br />
                                 <Input placeholder="Search via ID Number" onChange={(e) => { handleSearch(e.currentTarget.value) }} value={search} />
+                            </Col> 
+                            <Col sm={12}>
+                                <strong style={{color: "white"}}>Search via Risk Level</strong><br />
+                                <Input min="0" max="5" step="0.5" type="range" onChange={(e) => { handleRiskSearch(e.currentTarget.value) }} value={riskSearch} />
                             </Col>
                         </Row>
                         <br />
                         {
-                            profiles ? <Row>
+                            profiles ? <Row className="scroll">
                                 <h3 style={{color: "white"}}>Profiles:</h3>
                                 <hr />
                                 {
-                                    profiles.length > 0 ? profiles.map((profile) => {
+                                    profiles.length > 0 ? profiles.map((profile, index) => {
                                         return (
-                                            <Col sm={4}>
+                                            <Col key={index}  sm={4}>
                                                 {renderProfileCard(profile)}
                                             </Col>
                                         )
-                                    }) : <h3>There are no Profiles</h3>}
+                                    }) : <h3 style={{color: "White"}}>There are no Profiles that match the filters</h3>}
                             </Row> : null
                         }
                     </> 

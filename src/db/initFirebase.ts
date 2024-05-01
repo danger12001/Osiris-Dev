@@ -35,40 +35,25 @@ const initFirebase = async (username: string, password: string) => {
        * yarn emulator:export, then import the data when starting the emulator
        * yarn firebase emulators:start --only firestore,auth --import=firestore_mock_data
        */
-
-      if (auth) {
-        // signOut(auth).then(() => {
-        //   window.location.reload();
-        // });
-      } else {
-
-        return signInWithCredential(
-          auth,
-          EmailAuthProvider.credential(username, password)
-        ).then(() => {
-          console.log("Logged in with user: " + username);
-        }).catch(() => {
-          console.log("Failed to authenticate with user: " + username);
-        })
-      }
-
+      console.log(username, password)
+      return signInWithCredential(
+        auth,
+        EmailAuthProvider.credential(username, password)
+      ).then(() => {
+        console.log("Logged in with user: " + username);
+      }).catch(() => {
+        console.log("Failed to authenticate with user: " + username);
+      })
     } else {
-      if (auth) {
-        signOut(auth).then(() => {
-          window.location.reload();
-        });
-      } else {
+      return signInWithCredential(
+        auth,
+        EmailAuthProvider.credential(username, password)
+      ).then(() => {
+        console.log("Logged in with user: " + username);
 
-       return signInWithCredential(
-          auth,
-          EmailAuthProvider.credential(username, password)
-        ).then(() => {
-          console.log("Logged in with user: " + username);
-
-        }).catch(() => {
-          console.log("Failed to authenticate with user: " + username);
-        })
-      }
+      }).catch(() => {
+        console.log("Failed to authenticate with user: " + username);
+      })
     }
   } catch (err) {
     console.error("error: " + err)
