@@ -323,7 +323,7 @@ const Home = () => {
                             </Col> 
                             <Col sm={12}>
                                 <strong style={{color: "white"}}>Search via Risk Level</strong><br />
-                                <Input min="0" max="5" step="0.5" type="range" onChange={(e) => { handleRiskSearch(e.currentTarget.value) }} value={riskSearch} />
+                                <Input min="0" max="5" step="0.5" type="range" onChange={(e) => { handleRiskSearch(Number(e.currentTarget.value)) }} value={riskSearch} />
                             </Col>
                         </Row>
                         <br />
