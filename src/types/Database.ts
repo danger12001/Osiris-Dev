@@ -4,6 +4,7 @@ namespace Database {
     FirstName: string;
     LastName: string;
     IdNumber: string;
+    RiskLevel: 0 | 1 | 2 | 3 | 4 | 5;
   }
 }
 

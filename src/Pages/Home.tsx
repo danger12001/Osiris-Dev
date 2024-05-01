@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react"
-import { Spinner, Container, Card, CardBody, Button, Input, Modal, ModalHeader, ModalBody, ModalFooter, Row, Col, CardHeader } from "reactstrap";
+import { Spinner, Container, Card, CardBody, Button, Input, Modal, ModalHeader, ModalBody, ModalFooter, Row, Col, CardHeader, CardFooter, Progress } from "reactstrap";
 import db from "../db/db";
-import { WhereClause } from "../db/db";
 import Database from "../types/Database";
 import { Guid } from "guid-typescript";
+import { FaPlus, FaRegEdit, FaTrashAlt } from "react-icons/fa";
 interface Profile {
     FirstName: string,
     LastName: string,
-    IdNumber: string
+    IdNumber: string,
+    RiskLevel: 0 | 1 | 2 | 3 | 4 | 5
 }
 
 const Home = () => {
@@ -15,10 +16,10 @@ const Home = () => {
     const [originalDataSet, setOriginalDataSet] = useState([]);
 
     const [loading, setLoading] = useState(false);
-    const [newProfile, setNewProfile] = useState<Profile>({ FirstName: "", LastName: "", IdNumber: "" });
+    const [newProfile, setNewProfile] = useState<Profile>({ FirstName: "", LastName: "", IdNumber: "", RiskLevel: 0 });
     const [showAddForm, setShowAddForm] = useState(false);
     const [showEditForm, setShowEditForm] = useState(false);
-    const [existingProfile, setExistingProfile] = useState<any>({ FirstName: "", LastName: "", IdNumber: "", id: "" });
+    const [existingProfile, setExistingProfile] = useState<any>({ FirstName: "", LastName: "", IdNumber: "", id: "", RiskLevel: 0 });
     const [search, setSearch] = useState("");
 
     useEffect(() => {
@@ -49,6 +50,9 @@ const Home = () => {
             case "IdNumber":
                 profile.IdNumber = event.currentTarget.value;
                 break;
+            case "RiskLevel":
+                profile.RiskLevel = event.currentTarget.value;
+                break;
         }
         setNewProfile(profile);
     }
@@ -64,6 +68,9 @@ const Home = () => {
                 break;
             case "IdNumber":
                 profile.IdNumber = event.currentTarget.value;
+                break;
+            case "RiskLevel":
+                profile.RiskLevel = event.currentTarget.value;
                 break;
         }
         setExistingProfile(profile);
@@ -108,7 +115,7 @@ const Home = () => {
         if (profile) {
             setExistingProfile(profile);
         } else {
-            setExistingProfile({ FirstName: "", LastName: "", IdNumber: "" });
+            setExistingProfile({ FirstName: "", LastName: "", IdNumber: "", RiskLevel: 0 });
         }
     }
 
@@ -131,6 +138,10 @@ const Home = () => {
                         <Col className="mb-2" sm={12}>
                             <strong>ID Number</strong><br />
                             <Input type="text" value={existingProfile.IdNumber} onChange={(event) => updateExistingProfile(event, "IdNumber")} />
+                        </Col>
+                        <Col className="mb-2" sm={12}>
+                            <strong>Risk Level</strong><br />
+                            <Input type="range" value={existingProfile.RiskLevel} onChange={(event) => updateExistingProfile(event, "RiskLevel")} step={0.5} min={0} max={5} />
                         </Col>
                     </Row>
                 </ModalBody>
@@ -179,6 +190,10 @@ const Home = () => {
                             <strong>ID Number</strong><br />
                             <Input type="text" value={newProfile.IdNumber} onChange={(event) => updateNewProfile(event, "IdNumber")} />
                         </Col>
+                        <Col className="mb-2" sm={12}>
+                            <strong>Risk Level</strong><br />
+                            <Input type="range" value={newProfile.RiskLevel} onChange={(event) => updateNewProfile(event, "RiskLevel")} step={0.5} min={0} max={5} />
+                        </Col>
                     </Row>
                 </ModalBody>
                 <ModalFooter>
@@ -193,79 +208,90 @@ const Home = () => {
         )
     }
 
+    const renderProfileCard = (profile) => {
+        const riskPercentage = (profile.RiskLevel * 10) * 2;
+        return (
+            <Card className="p-4 m-2">
+                <CardHeader>
+                    <Row>
+                        <Col sm={12}>
+                            <h4>{profile.FirstName} {profile.LastName}</h4>
+                        </Col>
+
+                    </Row>
+                </CardHeader>
+
+                <CardBody>
+                    <Row>
+                        <Col sm={12} md={6}>
+                            <strong>ID Number: </strong><br />
+                            {profile.IdNumber}
+                        </Col>
+                        <Col sm={12} md={6}>
+                            <strong>Risk Level: </strong><br />
+                            <Progress
+                                color={riskPercentage < 20 ? "success" : riskPercentage <= 50 ? "warning" : "danger"}
+                                value={riskPercentage}
+                            />
+                        </Col>
+                    </Row>
+                </CardBody>
+                <CardFooter align="right">
+                    <Button color="primary" className="p-2 m-2" onClick={() => toggleEdit(profile)}>
+                        <FaRegEdit className="m-2" />
+                    </Button>
+                    <Button color="danger" className="p-2 m-2" onClick={() => deleteProfile(profile)}>
+                        <FaTrashAlt className="m-2" />
+                    </Button>
+                </CardFooter>
+            </Card>
+        )
+    }
+
     return (
         <Container className="p-4" fluid={true}>
             {
                 loading ? <Spinner /> :
                     <>
                         <Row>
+                            <Col>
+                                <h1>Osiris</h1>
+                            </Col>
                             <Col align="right">
-                                <Button onClick={() => setShowAddForm(!showAddForm)}>
-                                    Add Profile
+                                <Button color="primary" size="sm" className="p-2" onClick={() => setShowAddForm(!showAddForm)}>
+                                    <FaPlus className="m-2" />
                                 </Button>
                             </Col>
                         </Row>
-                        <br />
-                        <br />
-                        <Row>
-                            <Col sm={12}>
-                                <Input placeholder="search by ID number" onChange={(e) => { handleSearch(e.currentTarget.value) }} value={search} />
-                            </Col>
-                        </Row>
-                        <br />
-                        <br />
+
+
                         {
                             renderAddForm()
                         }
                         {
                             renderEditForm()
                         }
+                        <hr />
+                        <Row>
+                            <Col sm={12}>
+                                <strong>Search via ID Number</strong><br />
+                                <Input placeholder="Search via ID Number" onChange={(e) => { handleSearch(e.currentTarget.value) }} value={search} />
+                            </Col>
+                        </Row>
+                        <br />
                         {
                             profiles ? <Row>
+                                <h3>Profiles:</h3>
+                                <hr />
                                 {
-                                    profiles.map((profile) => {
+                                    profiles.length > 0 ? profiles.map((profile) => {
                                         return (
                                             <Col sm={4}>
-                                                <Card className="p-4">
-                                                    <CardHeader>
-                                                        <Row>
-                                                            <Col sm={12}>
-                                                                {profile.FirstName} {profile.LastName}
-                                                            </Col>
-
-                                                        </Row>
-                                                    </CardHeader>
-
-                                                    <CardBody>
-                                                        <Row>
-                                                            <Col sm={6}>
-                                                                <strong>ID Number: </strong><br />
-                                                                {profile.IdNumber}
-                                                            </Col>
-                                                            <Col align="right" sm={6}>
-                                                                <Row>
-                                                                    <Col>
-                                                                        <Button onClick={() => toggleEdit(profile)}>
-                                                                            Edit
-                                                                        </Button>
-                                                                    </Col>
-                                                                    <Col>
-                                                                        <Button onClick={() => deleteProfile(profile)}>
-                                                                            Delete
-                                                                        </Button>
-                                                                    </Col>
-
-                                                                </Row>
-
-
-                                                            </Col>
-                                                        </Row>
-
-
-                                                    </CardBody>
-                                                </Card></Col>
+                                                {renderProfileCard(profile)}
+                                            </Col>
                                         )
-                                    })}</Row> : null
+                                    }): <h3>There are no Profiles</h3>} 
+                                    </Row> : null
                         }
                     </>
             }
