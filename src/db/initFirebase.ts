@@ -8,22 +8,23 @@ import {
   getAuth,
   connectAuthEmulator,
   signInWithCredential,
-  EmailAuthProvider
+  EmailAuthProvider,
+  signOut
 } from 'firebase/auth';
 
 // the values to initialize the firebase app can be found in your firebase project
 const firebaseConfig = {
   projectId: "osiris-ef879",
   apiKey: "AIzaSyCr8XOrwbDEbgOcTgqPCGeCokwmEmBQqu4"
-  
+
 }
 
-const initFirebase = async () => {
+const initFirebase = async (username: string, password: string) => {
   try {
     const app = initializeApp(firebaseConfig);
     const firestore = getFirestore(app);
     const auth = getAuth(app);
-    console.log("initializing firebase");
+
     if (process.env.NODE_ENV !== 'production') {
       // connectAuthEmulator(auth, 'http://localhost:9099')
       // connectFirestoreEmulator(firestore, 'localhost', 8080)
@@ -35,25 +36,39 @@ const initFirebase = async () => {
        * yarn firebase emulators:start --only firestore,auth --import=firestore_mock_data
        */
 
-      signInWithCredential(
-        auth,
-        EmailAuthProvider.credential('robertsonpsd@gmail.com', '1234567890')
-        ).then(() => {
-        console.log("Logged in with test user");
+      if (auth) {
+        // signOut(auth).then(() => {
+        //   window.location.reload();
+        // });
+      } else {
 
-      }).catch(() =>{
-        console.log("Failed to authenticate test user");
-      })
+        return signInWithCredential(
+          auth,
+          EmailAuthProvider.credential(username, password)
+        ).then(() => {
+          console.log("Logged in with user: " + username);
+        }).catch(() => {
+          console.log("Failed to authenticate with user: " + username);
+        })
+      }
+
     } else {
-      signInWithCredential(
-        auth,
-        EmailAuthProvider.credential('robertsonpsd@gmail.com', '1234567890')
-        ).then(() => {
-        console.log("Logged in with test user");
+      if (auth) {
+        signOut(auth).then(() => {
+          window.location.reload();
+        });
+      } else {
 
-      }).catch(() =>{
-        console.log("Failed to authenticate test user");
-      })
+       return signInWithCredential(
+          auth,
+          EmailAuthProvider.credential(username, password)
+        ).then(() => {
+          console.log("Logged in with user: " + username);
+
+        }).catch(() => {
+          console.log("Failed to authenticate with user: " + username);
+        })
+      }
     }
   } catch (err) {
     console.error("error: " + err)

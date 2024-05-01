@@ -4,6 +4,8 @@ import db from "../db/db";
 import Database from "../types/Database";
 import { Guid } from "guid-typescript";
 import { FaPlus, FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import {signOut, getAuth} from 'firebase/auth'
+import { PiSignOutFill } from "react-icons/pi";
 interface Profile {
     FirstName: string,
     LastName: string,
@@ -21,6 +23,8 @@ const Home = () => {
     const [showEditForm, setShowEditForm] = useState(false);
     const [existingProfile, setExistingProfile] = useState<any>({ FirstName: "", LastName: "", IdNumber: "", id: "", RiskLevel: 0 });
     const [search, setSearch] = useState("");
+
+
 
     useEffect(() => {
         setLoading(true);
@@ -91,7 +95,7 @@ const Home = () => {
             id: Guid.create().toString()
         }
 
-        if(profile.IdNumber === "" || profile.IdNumber.includes("?")) {
+        if (profile.IdNumber === "" || profile.IdNumber.includes("?")) {
             profile.RiskLevel = 5;
             profile.IdNumber = "?";
         }
@@ -104,12 +108,12 @@ const Home = () => {
     };
 
     const editProfile = () => {
-        if(existingProfile.IdNumber === "" || existingProfile.IdNumber.includes("?")) {
+        if (existingProfile.IdNumber === "" || existingProfile.IdNumber.includes("?")) {
             existingProfile.RiskLevel = 5;
             existingProfile.IdNumber = "?";
         }
 
-        
+
         db.updateItem("Profiles", existingProfile.id, existingProfile).then(() => {
             toggleEdit();
             window.location.reload();
@@ -260,20 +264,34 @@ const Home = () => {
         )
     }
 
+
     return (
         <Container className="p-4" fluid={true}>
+
             {
                 loading ? <Spinner /> :
                     <>
                         <Row>
-                            <Col>
-                                <h1>Osiris</h1>
+                            <Col className="p-2">
+                                <h1 style={{color: "white"}}>Osiris</h1>
                             </Col>
                             <Col align="right">
-                                <Button color="primary" size="sm" className="p-2" onClick={() => setShowAddForm(!showAddForm)}>
+                                <Button color="primary" size="sm" className="p-2 m-2" onClick={() => setShowAddForm(!showAddForm)}>
                                     <FaPlus className="m-2" />
                                 </Button>
+                                <Button color="danger" size="sm" className="p-2 m-2" onClick={() => {
+                                    const auth = getAuth();
+                                    signOut(auth).then(() => {
+                                      // Sign-out successful.
+                                      window.location.reload();
+                                    }).catch((error) => {
+                                      // An error happened.
+                                    });
+                                }}>
+                                    <PiSignOutFill className="m-2" />
+                                </Button>
                             </Col>
+                            
                         </Row>
 
 
@@ -286,14 +304,14 @@ const Home = () => {
                         <hr />
                         <Row>
                             <Col sm={12}>
-                                <strong>Search via ID Number</strong><br />
+                                <strong style={{color: "white"}}>Search via ID Number</strong><br />
                                 <Input placeholder="Search via ID Number" onChange={(e) => { handleSearch(e.currentTarget.value) }} value={search} />
                             </Col>
                         </Row>
                         <br />
                         {
                             profiles ? <Row>
-                                <h3>Profiles:</h3>
+                                <h3 style={{color: "white"}}>Profiles:</h3>
                                 <hr />
                                 {
                                     profiles.length > 0 ? profiles.map((profile) => {
@@ -302,10 +320,10 @@ const Home = () => {
                                                 {renderProfileCard(profile)}
                                             </Col>
                                         )
-                                    }): <h3>There are no Profiles</h3>} 
-                                    </Row> : null
+                                    }) : <h3>There are no Profiles</h3>}
+                            </Row> : null
                         }
-                    </>
+                    </> 
             }
         </Container>
     )
