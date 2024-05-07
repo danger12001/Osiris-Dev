@@ -23,7 +23,7 @@ const firebaseConfig = {
   apiKey: apiKey
 };
 
-console.log(import.meta)
+console.log(import.meta, process)
 
     const app = initializeApp(firebaseConfig);
     const firestore = getFirestore(app);
