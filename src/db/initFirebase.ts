@@ -17,10 +17,13 @@ const initFirebase = async (username: string, password: string) => {
   try {
 const apiKey = import.meta.env.VITE_API_KEY??"";
 const projectId = import.meta.env.VITE_PROJECT_ID??"";
+
 const firebaseConfig = {
   projectId: projectId,
   apiKey: apiKey
 };
+
+console.log(import.meta)
 
     const app = initializeApp(firebaseConfig);
     const firestore = getFirestore(app);
