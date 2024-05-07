@@ -3,7 +3,7 @@ import { Spinner, Container, Card, CardBody, Button, Input, Modal, ModalHeader, 
 import db from "../db/db";
 import Database from "../types/Database";
 import { Guid } from "guid-typescript";
-import { FaPlus, FaRegEdit, FaTrashAlt } from "react-icons/fa";
+import { FaPlus, FaRegEdit, FaTrashAlt, FaRegListAlt } from "react-icons/fa";
 import { signOut, getAuth } from 'firebase/auth'
 import { PiSignOutFill } from "react-icons/pi";
 import { MdOutlineReportProblem } from "react-icons/md";
@@ -31,6 +31,12 @@ const Home = () => {
     const [incidentDate, setIncidentDate] = useState(new Date());
     const [incidentDescription, setIncidentDescription] = useState("");
     const [incidentId, setIncidentId] = useState("");
+    const [showIncidents, setShowIncidents] = useState(false);
+    const [incidents, setIncidents] = useState([]);
+    const [OriginalIncidents, setOriginalIncidents] = useState([]);
+    const [incidentSearch, setIncidentSearch] = useState("");
+
+
 
 
 
@@ -46,6 +52,13 @@ const Home = () => {
         }).catch((err) => {
             console.log("ERROR", err)
             setLoading(false);
+        })
+
+        db.query({
+            collection: "Incidents",
+        }).then((results) => {
+            setIncidents(results);
+            setOriginalIncidents(results);
         })
     }, []);
 
@@ -200,7 +213,7 @@ const Home = () => {
     const renderIncidentForm = () => {
 
         return (
-            <Modal isOpen={showIncidentForm} toggle={() => { setShowIncidentForm(false); setIncidentDate(new Date()); setIncidentDescription(""); setIncidentId("")  }}>
+            <Modal isOpen={showIncidentForm} toggle={() => { setShowIncidentForm(false); setIncidentDate(new Date()); setIncidentDescription(""); setIncidentId("") }}>
                 <ModalHeader toggle={() => { setShowIncidentForm(false); setIncidentDate(new Date()); setIncidentDescription(""); setIncidentId("") }}>Add Incident</ModalHeader>
                 <ModalBody>
                     <Row>
@@ -237,6 +250,21 @@ const Home = () => {
             });
 
             setProfiles(filtered);
+        }
+
+    }
+
+    const handleIncidentSearch = (searchTerm: string) => {
+        setIncidentSearch(searchTerm);
+        if (searchTerm == "") {
+            setIncidents(OriginalIncidents);
+        } else {
+
+            const filtered = OriginalIncidents.filter((incident) => {
+                return incident.IdNumber.includes(searchTerm);
+            });
+
+            setIncidents(filtered);
         }
 
     }
@@ -290,6 +318,65 @@ const Home = () => {
         )
     }
 
+    const renderIncidents = () => {
+
+        return showIncidents ? (
+            <Card className="p-4">
+                <CardHeader>
+                    <Row>
+                        <Col>
+                            Incidents
+                        </Col>
+                        <Col align="right">
+                            <Button onClick={() => { setShowIncidents(!showIncidents) }} color="danger">X</Button>
+                        </Col>
+                    </Row>
+
+                </CardHeader>
+                <CardBody>
+                    <Row>
+                        <Col sm={12}>
+                            <strong style={{ color: "white" }}>Search via ID Number</strong><br />
+                            <Input placeholder="Search via ID Number" onChange={(e) => { handleIncidentSearch(e.currentTarget.value) }} value={incidentSearch} />
+                        </Col>
+                    </Row>
+                    <br />
+                    <Row className="p-2">
+                        <Col sm={3}><strong>Incident Date</strong></Col>
+                        <Col sm={3}><strong>Id Number</strong></Col>
+                        <Col sm={6}><strong>Incident Description</strong></Col>
+                    </Row>
+
+                    {
+                        incidents.sort((a, b) => {
+                            return a.IncidentDate.seconds < b.IncidentDate.seconds
+                        }).map((incident) => {
+                            var t = new Date(1970, 0, 1); // Epoch
+                            t.setSeconds(incident.IncidentDate.seconds);
+                            const date = t.toLocaleDateString();
+                            console.log(date)
+                            return (
+                                <Row className="p-2">
+                                    <Col sm={3}>
+                                        {date}
+                                    </Col>
+                                    <Col sm={3}>
+                                        {incident.IdNumber}
+                                    </Col>
+                                    <Col sm={6}>
+                                        {incident.IncidentDescription}
+                                    </Col>
+                                </Row>
+                            )
+                        })
+                    }
+
+
+                </CardBody>
+            </Card>
+        ) : null
+    }
+
     const renderProfileCard = (profile) => {
         const riskPercentage = (profile.RiskLevel * 10) * 2;
         return (
@@ -321,9 +408,9 @@ const Home = () => {
                 <CardFooter align="right">
                     {
                         profile.IdNumber !== "?" ?
-                        <Button color="primary" className="p-2 m-2" onClick={() => {setShowIncidentForm(true); setIncidentId(profile.IdNumber)}}>
-                            <MdOutlineReportProblem className="m-2" />
-                        </Button> : null
+                            <Button color="primary" className="p-2 m-2" onClick={() => { setShowIncidentForm(true); setIncidentId(profile.IdNumber) }}>
+                                <MdOutlineReportProblem className="m-2" />
+                            </Button> : null
 
                     }
                     <Button color="primary" className="p-2 m-2" onClick={() => toggleEdit(profile)}>
@@ -349,6 +436,9 @@ const Home = () => {
                                 <h1 style={{ color: "white" }}>Osiris</h1>
                             </Col>
                             <Col align="right">
+                                <Button color="primary" size="sm" className="p-2 m-2" onClick={() => setShowIncidents(!showIncidents)}>
+                                    <FaRegListAlt className="m-2" />
+                                </Button>
                                 <Button color="primary" size="sm" className="p-2 m-2" onClick={() => setShowAddForm(!showAddForm)}>
                                     <FaPlus className="m-2" />
                                 </Button>
@@ -356,6 +446,7 @@ const Home = () => {
                                     const auth = getAuth();
                                     signOut(auth).then(() => {
                                         // Sign-out successful.
+                                        sessionStorage.removeItem("user");
                                         window.location.reload();
                                     }).catch((error) => {
                                         // An error happened.
@@ -374,8 +465,11 @@ const Home = () => {
                         {
                             renderEditForm()
                         }
-                         {
+                        {
                             renderIncidentForm()
+                        }
+                        {
+                            renderIncidents()
                         }
                         <hr />
                         <Row>

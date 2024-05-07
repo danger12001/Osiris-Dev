@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "NODE_ENV=dev vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -13,6 +13,7 @@
     "@react-firebase/auth": "^0.2.10",
     "@react-firebase/database": "^0.3.11",
     "bootstrap": "^5.3.0",
+    "dotenv": "^16.4.5",
     "firebase": "^9.8.1",
     "guid-typescript": "^1.0.9",
     "react": "^18.2.0",

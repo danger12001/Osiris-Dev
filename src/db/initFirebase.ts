@@ -11,17 +11,17 @@ import {
   EmailAuthProvider,
   signOut
 } from 'firebase/auth';
-import db from './db';
-
 // the values to initialize the firebase app can be found in your firebase project
-const firebaseConfig = {
-  projectId: "osiris-ef879",
-  apiKey: "AIzaSyCr8XOrwbDEbgOcTgqPCGeCokwmEmBQqu4"
-
-}
 
 const initFirebase = async (username: string, password: string) => {
   try {
+const apiKey = import.meta.env.VITE_API_KEY??"";
+const projectId = import.meta.env.VITE_PROJECT_ID??"";
+const firebaseConfig = {
+  projectId: projectId,
+  apiKey: apiKey
+};
+
     const app = initializeApp(firebaseConfig);
     const firestore = getFirestore(app);
     const auth = getAuth(app);
@@ -36,28 +36,27 @@ const initFirebase = async (username: string, password: string) => {
        * yarn emulator:export, then import the data when starting the emulator
        * yarn firebase emulators:start --only firestore,auth --import=firestore_mock_data
        */
-      console.log(username, password, auth, "dev");
 
       return signInWithCredential(
         auth,
-        EmailAuthProvider.credential(username, password)
-      ).then(() => {
-        console.log("Logged in with user: " + username);
+        EmailAuthProvider.credential("dev@osiris.com", "1234567890")
+      ).then((res) => {
+        const user = res.user;
+        sessionStorage.setItem("user", user.uid);
         return "success";
 
       }).catch(() => {
-        console.log("Failed to authenticate with user: " + username);
+        console.log("Failed to authenticate with user: " + "dev@osiris.com");
         return "failed";
 
       })
     } else {
-      console.log(username, password, auth);
-
       return signInWithCredential(
         auth,
         EmailAuthProvider.credential(username, password)
-      ).then(() => {
-        console.log("Logged in with user: " + username);
+      ).then((res) => {
+        const user = res.user;
+        sessionStorage.setItem("user", user.uid);
         return "success";
       }).catch(() => {
         console.log("Failed to authenticate with user: " + username);
