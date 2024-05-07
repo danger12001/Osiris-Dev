@@ -147,7 +147,7 @@ const Home = () => {
             IncidentDescription: incidentDescription,
             IdNumber: incidentId,
             id: Guid.create().toString()
-        }
+        };
 
         db.addItem("Incidents", Incident).then(() => {
             setIncidentDate(new Date());
@@ -324,8 +324,8 @@ const Home = () => {
             <Card className="p-4">
                 <CardHeader>
                     <Row>
-                        <Col>
-                            Incidents
+                        <Col >
+                            <h2>Incidents</h2>
                         </Col>
                         <Col align="right">
                             <Button onClick={() => { setShowIncidents(!showIncidents) }} color="danger">X</Button>
@@ -348,13 +348,17 @@ const Home = () => {
                     </Row>
 
                     {
-                        incidents.sort((a, b) => {
-                            return a.IncidentDate.seconds < b.IncidentDate.seconds
+                        incidents.sort((a: any, b: any) => {
+                            const dateA = new Date(1970, 0, 1); // Epoch
+                            const dateB = new Date(1970, 0, 1); // Epoch
+                            dateA.setSeconds(a.IncidentDate.seconds);
+                            dateB.setSeconds(b.IncidentDate.seconds);
+                            console.log(a.IncidentDate.seconds, b.IncidentDate.seconds)
+                            return a.IncidentDate.seconds < b.IncidentDate.seconds ? 1 : -1;
                         }).map((incident) => {
                             var t = new Date(1970, 0, 1); // Epoch
                             t.setSeconds(incident.IncidentDate.seconds);
                             const date = t.toLocaleDateString();
-                            console.log(date)
                             return (
                                 <Row className="p-2">
                                     <Col sm={3}>
